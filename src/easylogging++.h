@@ -823,12 +823,12 @@ const struct {
   double value;
   const base::type::char_t* unit;
 } kTimeFormats[] = {
-  { 1000.0f, ELPP_LITERAL("us") },
-  { 1000.0f, ELPP_LITERAL("ms") },
-  { 60.0f, ELPP_LITERAL("seconds") },
-  { 60.0f, ELPP_LITERAL("minutes") },
-  { 24.0f, ELPP_LITERAL("hours") },
-  { 7.0f, ELPP_LITERAL("days") }
+  { 1000.0, ELPP_LITERAL("us") },
+  { 1000.0, ELPP_LITERAL("ms") },
+  { 60.0, ELPP_LITERAL("seconds") },
+  { 60.0, ELPP_LITERAL("minutes") },
+  { 24.0, ELPP_LITERAL("hours") },
+  { 7.0, ELPP_LITERAL("days") }
 };
 static const int kTimeFormatsCount                           =      sizeof(kTimeFormats) / sizeof(kTimeFormats[0]);
 const struct {
@@ -3323,17 +3323,17 @@ void Logger::log_(Level level, int vlevel, const char* s, const T& value, const 
   ELPP_INTERNAL_ERROR("Too many arguments provided. Unable to handle. Please provide more format specifiers", false);
 }
 template <typename T>
-void Logger::log_(Level level, int vlevel, const T& log) {
+void Logger::log_(Level level, int vlevel, const T& plog) {
   if (level == Level::Verbose) {
     if (ELPP->vRegistry()->allowed(vlevel, __FILE__)) {
       base::Writer(Level::Verbose, "FILE", 0, "FUNCTION",
-                   base::DispatchAction::NormalLog, vlevel).construct(this, false) << log;
+                   base::DispatchAction::NormalLog, vlevel).construct(this, false) << plog;
     } else {
       stream().str(ELPP_LITERAL(""));
       releaseLock();
     }
   } else {
-    base::Writer(level, "FILE", 0, "FUNCTION").construct(this, false) << log;
+    base::Writer(level, "FILE", 0, "FUNCTION").construct(this, false) << plog;
   }
 }
 template <typename T, typename... Args>
@@ -3342,9 +3342,9 @@ inline void Logger::log(Level level, const char* s, const T& value, const Args&.
   log_(level, 0, s, value, args...);
 }
 template <typename T>
-inline void Logger::log(Level level, const T& log) {
+inline void Logger::log(Level level, const T& plog) {
   acquireLock(); // released in Writer!
-  log_(level, 0, log);
+  log_(level, 0, plog);
 }
 #  if ELPP_VERBOSE_LOG
 template <typename T, typename... Args>
@@ -3353,9 +3353,9 @@ inline void Logger::verbose(int vlevel, const char* s, const T& value, const Arg
   log_(el::Level::Verbose, vlevel, s, value, args...);
 }
 template <typename T>
-inline void Logger::verbose(int vlevel, const T& log) {
+inline void Logger::verbose(int vlevel, const T& plog) {
   acquireLock(); // released in Writer!
-  log_(el::Level::Verbose, vlevel, log);
+  log_(el::Level::Verbose, vlevel, plog);
 }
 #  else
 template <typename T, typename... Args>

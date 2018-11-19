@@ -90,7 +90,7 @@ void LevelHelper::forEachLevel(base::type::EnumType* startIndex, const std::func
     if (fn()) {
       break;
     }
-    *startIndex = static_cast<base::type::EnumType>(*startIndex << 1);
+    *startIndex = *startIndex << 1;
   } while (*startIndex <= lIndexMax);
 }
 
@@ -143,7 +143,7 @@ void ConfigurationTypeHelper::forEachConfigType(base::type::EnumType* startIndex
     if (fn()) {
       break;
     }
-    *startIndex = static_cast<base::type::EnumType>(*startIndex << 1);
+    *startIndex = *startIndex << 1;
   } while (*startIndex <= cIndexMax);
 }
 
@@ -917,7 +917,7 @@ char* Str::convertAndAddToBuff(std::size_t n, int len, char* buf, const char* bu
     --len;
   }
   if (zeroPadded)
-    while (p > localBuff && len-- > 0) *--p = static_cast<char>('0');
+    while (p > localBuff && len-- > 0) *--p = '0';
   return addToBuff(p, buf, bufLim);
 }
 
@@ -1121,7 +1121,7 @@ base::type::string_t DateTime::formatTime(unsigned long long time, base::Timesta
     if (time <= base::consts::kTimeFormats[i].value) {
       break;
     }
-    if (base::consts::kTimeFormats[i].value == 1000.0f && time / 1000.0f < 1.9f) {
+    if (base::consts::kTimeFormats[i].value == 1000.0 && time / 1000.0f < 1.9f) {
       break;
     }
     time /= static_cast<decltype(time)>(base::consts::kTimeFormats[i].value);
@@ -1135,14 +1135,14 @@ base::type::string_t DateTime::formatTime(unsigned long long time, base::Timesta
 unsigned long long DateTime::getTimeDifference(const struct timeval& endTime, const struct timeval& startTime,
     base::TimestampUnit timestampUnit) {
   if (timestampUnit == base::TimestampUnit::Microsecond) {
-    return static_cast<unsigned long long>(static_cast<unsigned long long>(1000000 * endTime.tv_sec + endTime.tv_usec) -
-                                           static_cast<unsigned long long>(1000000 * startTime.tv_sec + startTime.tv_usec));
+    return static_cast<unsigned long long>(1000000 * endTime.tv_sec + endTime.tv_usec) -
+           static_cast<unsigned long long>(1000000 * startTime.tv_sec + startTime.tv_usec);
   }
   // milliseconds
   auto conv = [](const struct timeval& tim) {
     return static_cast<unsigned long long>((tim.tv_sec * 1000) + (tim.tv_usec / 1000));
   };
-  return static_cast<unsigned long long>(conv(endTime) - conv(startTime));
+  return conv(endTime) - conv(startTime);
 }
 
 struct ::tm* DateTime::buildTimeInfo(struct timeval* currTime, struct ::tm* timeInfo) {
@@ -1621,12 +1621,12 @@ void TypedConfigurations::build(Configurations* configurations) {
     } else if (conf->configurationType() == ConfigurationType::PerformanceTracking) {
       setValue(Level::Global, getBool(conf->value()), &m_performanceTrackingMap);
     } else if (conf->configurationType() == ConfigurationType::MaxLogFileSize) {
-      setValue(conf->level(), static_cast<std::size_t>(getULong(conf->value())), &m_maxLogFileSizeMap);
+      setValue(conf->level(), getULong(conf->value()), &m_maxLogFileSizeMap);
 #if !defined(ELPP_NO_DEFAULT_LOG_FILE)
       withFileSizeLimit.push_back(conf);
 #endif  // !defined(ELPP_NO_DEFAULT_LOG_FILE)
     } else if (conf->configurationType() == ConfigurationType::LogFlushThreshold) {
-      setValue(conf->level(), static_cast<std::size_t>(getULong(conf->value())), &m_logFlushThresholdMap);
+      setValue(conf->level(), getULong(conf->value()), &m_logFlushThresholdMap);
     }
   }
   // As mentioned earlier, we will now set filename configuration in separate loop to deal with non-existent files
@@ -1713,26 +1713,26 @@ void TypedConfigurations::insertFile(Level level, const std::string& fullFilenam
   if (filePath.size() < resolvedFilename.size()) {
     base::utils::File::createPath(filePath);
   }
-  auto create = [&](Level level) {
+  auto create = [&](Level llevel) {
     base::LogStreamsReferenceMap::iterator filestreamIter = m_logStreamsReference->find(resolvedFilename);
     base::type::fstream_t* fs = nullptr;
     if (filestreamIter == m_logStreamsReference->end()) {
       // We need a completely new stream, nothing to share with
       fs = base::utils::File::newFileStream(resolvedFilename);
-      m_filenameMap.insert(std::make_pair(level, resolvedFilename));
-      m_fileStreamMap.insert(std::make_pair(level, base::FileStreamPtr(fs)));
-      m_logStreamsReference->insert(std::make_pair(resolvedFilename, base::FileStreamPtr(m_fileStreamMap.at(level))));
+      m_filenameMap.insert(std::make_pair(llevel, resolvedFilename));
+      m_fileStreamMap.insert(std::make_pair(llevel, base::FileStreamPtr(fs)));
+      m_logStreamsReference->insert(std::make_pair(resolvedFilename, m_fileStreamMap.at(llevel)));
     } else {
       // Woops! we have an existing one, share it!
-      m_filenameMap.insert(std::make_pair(level, filestreamIter->first));
-      m_fileStreamMap.insert(std::make_pair(level, base::FileStreamPtr(filestreamIter->second)));
+      m_filenameMap.insert(std::make_pair(llevel, filestreamIter->first));
+      m_fileStreamMap.insert(std::make_pair(llevel, filestreamIter->second));
       fs = filestreamIter->second.get();
     }
     if (fs == nullptr) {
       // We display bad file error from newFileStream()
       ELPP_INTERNAL_ERROR("Setting [TO_FILE] of ["
-                          << LevelHelper::convertToString(level) << "] to FALSE", false);
-      setValue(level, false, &m_toFileMap);
+                          << LevelHelper::convertToString(llevel) << "] to FALSE", false);
+      setValue(llevel, false, &m_toFileMap);
     }
   };
   // If we dont have file conf for any level, create it for Level::Global first
