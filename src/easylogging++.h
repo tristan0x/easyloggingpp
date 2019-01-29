@@ -926,15 +926,15 @@ safeDelete(T*& pointer) {
 namespace bitwise {
 template <typename Enum>
 static inline base::type::EnumType And(Enum e, base::type::EnumType flag) {
-  return static_cast<base::type::EnumType>(flag) & static_cast<base::type::EnumType>(e);
+  return flag & static_cast<base::type::EnumType>(e);
 }
 template <typename Enum>
 static inline base::type::EnumType Not(Enum e, base::type::EnumType flag) {
-  return static_cast<base::type::EnumType>(flag) & ~(static_cast<base::type::EnumType>(e));
+  return flag & ~(static_cast<base::type::EnumType>(e));
 }
 template <typename Enum>
 static inline base::type::EnumType Or(Enum e, base::type::EnumType flag) {
-  return static_cast<base::type::EnumType>(flag) | static_cast<base::type::EnumType>(e);
+  return flag | static_cast<base::type::EnumType>(e);
 }
 }  // namespace bitwise
 template <typename Enum>
